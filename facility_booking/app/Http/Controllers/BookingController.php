@@ -10,14 +10,17 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(
-            \App\Models\Booking::with('facility')
-                ->select('id', 'facility_id', 'user_id', 'date', 'start_time', 'end_time', 'status')
-                ->latest()
-                ->get()
-        );
+        $query = \App\Models\Booking::with('facility')
+            ->select('id', 'facility_id', 'user_id', 'date', 'start_time', 'end_time', 'status')
+            ->latest();
+
+        if ($request->user() && $request->user()->role !== 'admin') {
+            $query->where('user_id', $request->user()->id);
+        }
+
+        return response()->json($query->get());
     }
 
     /**

@@ -8,19 +8,26 @@ use App\Models\Facility;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class FacilityController extends Controller
 {
     /** List rooms, optionally filtered by building. */
     public function index(Request $request): JsonResponse
     {
-        $query = Facility::query();
+        $cacheKey = 'facilities_all_' . ($request->has('building_id') ? $request->integer('building_id') : 'all');
 
-        if ($request->has('building_id')) {
-            $query->where('building_id', $request->integer('building_id'));
-        }
+        $facilities = Cache::rememberForever($cacheKey, function () use ($request) {
+            $query = Facility::query();
 
-        return response()->json($query->get());
+            if ($request->has('building_id')) {
+                $query->where('building_id', $request->integer('building_id'));
+            }
+
+            return $query->get();
+        });
+
+        return response()->json($facilities);
     }
 
     /**
@@ -50,6 +57,8 @@ class FacilityController extends Controller
     {
         $facility = Facility::create($request->validated());
 
+        Cache::flush(); // Invalidate facility cache
+
         return response()->json($facility->load('building'), 201);
     }
 
@@ -63,12 +72,16 @@ class FacilityController extends Controller
         $facility = Facility::findOrFail($id);
         $facility->update($request->validated());
 
+        Cache::flush(); // Invalidate facility cache
+
         return response()->json($facility->fresh());
     }
 
     public function destroy(string $id): JsonResponse
     {
         Facility::destroy($id);
+
+        Cache::flush(); // Invalidate facility cache
 
         return response()->json(null, 204);
     }

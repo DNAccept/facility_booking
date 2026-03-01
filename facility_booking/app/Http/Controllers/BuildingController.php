@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Building;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class BuildingController extends Controller
 {
     /** List all buildings with a room count (public). */
     public function index(): JsonResponse
     {
-        $buildings = Building::withCount('rooms')->orderBy('name')->get();
+        $buildings = Cache::rememberForever('buildings_all', function () {
+            return Building::withCount('rooms')->orderBy('name')->get();
+        });
 
         return response()->json($buildings);
     }
@@ -34,6 +37,8 @@ class BuildingController extends Controller
 
         $building = Building::create($data);
 
+        Cache::forget('buildings_all'); // clear cache
+
         return response()->json($building->loadCount('rooms'), 201);
     }
 
@@ -49,6 +54,8 @@ class BuildingController extends Controller
 
         $building->update($data);
 
+        Cache::forget('buildings_all'); // clear cache
+
         return response()->json($building->loadCount('rooms'));
     }
 
@@ -56,6 +63,8 @@ class BuildingController extends Controller
     public function destroy(string $id): JsonResponse
     {
         Building::findOrFail($id)->delete();
+
+        Cache::forget('buildings_all'); // clear cache
 
         return response()->json(['message' => 'Building deleted.']);
     }
