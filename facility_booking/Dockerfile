@@ -27,5 +27,5 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Change port if needed (Render maps PORT automatically, but default EXPOSE here)
 EXPOSE 8080
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Start Apache (and run migrations first)
+CMD php artisan migrate --force && apache2-foreground
