@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'test@example.com'],
             [
                 'name' => 'Test User',
-                'password' => bcrypt('password'),
+                'password' => 'password',
                 'role' => 'user',
             ]
         );
@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin User',
-                'password' => bcrypt('password'), // Or whatever default is preferred
+                'password' => 'password',
                 'role' => 'admin',
             ]
         );

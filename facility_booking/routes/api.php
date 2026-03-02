@@ -22,7 +22,7 @@ Route::prefix('auth')->group(function () {
             ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin User',
-                'password' => bcrypt('password'),
+                'password' => 'password', // Auto-hashed by User model casts
                 'role' => 'admin',
             ]
         );
