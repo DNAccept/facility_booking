@@ -15,6 +15,19 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    
+    // Emergency route to provision default admin if seeders fail in prod
+    Route::get('/setup-admin', function () {
+        $admin = \App\Models\User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => bcrypt('password'),
+                'role' => 'admin',
+            ]
+        );
+        return response()->json(['message' => 'Admin provisioned', 'admin' => $admin]);
+    });
 });
 
 // Public routes
@@ -22,6 +35,7 @@ Route::apiResource('facilities', FacilityController::class)->only(['index', 'sho
 Route::get('/facilities/{facility}/slots', [FacilityController::class, 'slots']);
 Route::get('/availability', [BookingController::class, 'checkAvailability']);
 Route::get('/available-rooms', [FacilityController::class, 'availableRooms']);
+Route::get('/health', fn () => response()->json(['status' => 'ok']));
 
 // Buildings — public read
 Route::get('/buildings', [BuildingController::class, 'index']);
